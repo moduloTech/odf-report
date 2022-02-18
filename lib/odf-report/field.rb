@@ -1,7 +1,7 @@
 module ODFReport
   class Field
 
-    DELIMITERS = %w(%{ })
+    DELIMITERS = %w(%([a-z]+)?{ })
 
     def initialize(opts, &block)
       @name = opts[:name]
