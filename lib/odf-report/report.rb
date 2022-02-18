@@ -2,6 +2,9 @@ module ODFReport
 
 class Report
 
+  DELIMITERS_REGEx = /%{(.+?)}/
+
+
   def initialize(template_name = nil, io: nil)
 
     @template = ODFReport::Template.new(template_name, io: io)
@@ -12,9 +15,24 @@ class Report
     @sections = []
 
     @images      = []
+    @patterns    = load_patterns
 
     yield(self) if block_given?
 
+  end
+
+  def load_patterns
+    res = []
+    @template.update_content do |file|
+      file.update_files do |doc|
+        res += doc.scan(/%{(.+?)}/).flatten
+      end
+    end
+    res.uniq
+  end
+
+  def matching_patterns
+    @patterns
   end
 
   def add_field(field_tag, value='')
