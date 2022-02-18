@@ -25,7 +25,7 @@ class Report
     res = []
     @template.update_content do |file|
       file.update_files do |doc|
-        res += doc.scan(/%{(.+?)}/).flatten
+        res += doc.inner_html.scan(/%{(.+?)}/).flatten
       end
     end
     res.uniq
