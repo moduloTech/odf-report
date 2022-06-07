@@ -2,8 +2,7 @@ module ODFReport
 
 class Report
 
-  DELIMITERS_REGEx = /%{(.+?)}/
-
+  DELIMITERS_REGEX = /%{(.+?)}/
 
   def initialize(template_name = nil, io: nil)
 
@@ -25,7 +24,7 @@ class Report
     res = []
     @template.update_content do |file|
       file.update_files do |doc|
-        res += doc.inner_html.scan(/%{(.+?)}/).flatten
+        res += doc.inner_html.scan(DELIMITERS_REGEX).flatten
       end
     end
     res.uniq
