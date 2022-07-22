@@ -1,8 +1,6 @@
 module ODFReport
   class Field
 
-    DELIMITERS = %w(%{ })
-
     def initialize(opts, &block)
       @name = opts[:name]
       @data_source = DataSource.new(opts, &block)
@@ -26,10 +24,14 @@ module ODFReport
   private
 
     def to_placeholder
-      if DELIMITERS.is_a?(Array)
-        "#{DELIMITERS[0]}#{@name.to_s}#{DELIMITERS[1]}"
+      as_is = ODFReport.config.field_delimiters_as_is
+      delimiters = ODFReport.config.field_delimiters
+      if as_is
+        @name.to_s
+      elsif delimiters.is_a?(Array)
+        "#{delimiters[0]}#{@name.to_s}#{delimiters[1]}"
       else
-        "#{DELIMITERS}#{@name.to_s}#{DELIMITERS}"
+        "#{delimiters}#{@name.to_s}#{delimiters}"
       end
     end
 
