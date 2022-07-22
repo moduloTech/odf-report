@@ -2,8 +2,6 @@ module ODFReport
 
 class Report
 
-  DELIMITERS_REGEX = /%{(.+?)}/
-
   def initialize(template_name = nil, io: nil)
 
     @template = ODFReport::Template.new(template_name, io: io)
@@ -12,26 +10,23 @@ class Report
     @fields = []
     @tables = []
     @sections = []
-
     @images      = []
-    @patterns    = load_patterns
 
     yield(self) if block_given?
 
   end
 
-  def load_patterns
-    res = []
-    @template.update_content do |file|
-      file.update_files do |doc|
-        res += doc.inner_html.scan(DELIMITERS_REGEX).flatten
-      end
-    end
-    res.uniq
-  end
-
   def matching_patterns
-    @patterns
+    @matching_patterns ||=
+      begin
+        dirty_patterns = []
+
+        @template.each_entry_data do |_entry, data|
+          dirty_patterns.concat(data.scan(ODFReport.config.patterns_regex))
+        end
+
+        dirty_patterns.flatten.compact.uniq
+      end
   end
 
   def add_field(field_tag, value='')

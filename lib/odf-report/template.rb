@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module ODFReport
   class Template
 
-    CONTENT_FILES = ['content.xml', 'styles.xml']
+    CONTENT_FILES = %w[content.xml styles.xml].to_set
     MANIFEST_FILE = "META-INF/manifest.xml"
 
     attr_accessor :output_stream
@@ -22,28 +24,14 @@ module ODFReport
     end
 
     def update_files(&block)
-
-      get_template_entries.each do |entry|
-
-        next if entry.directory?
-
-        entry.get_input_stream do |is|
-
-          data = is.sysread
-
-          if CONTENT_FILES.include?(entry.name)
-            process_entry(data, &block)
-          end
-
-          update_file(entry.name, data) unless entry.name == MANIFEST_FILE
-
-        end
+      each_entry_data do |entry, data|
+        process_entry(data, &block)
+        update_file(entry.name, data) unless entry.name == MANIFEST_FILE
       end
-
     end
 
     def update_manifest(&block)
-      entry = get_template_entries.find_entry(MANIFEST_FILE)
+      entry = template_entries.find_entry(MANIFEST_FILE)
 
       entry.get_input_stream do |is|
 
@@ -66,16 +54,24 @@ module ODFReport
       @output_stream.write data
     end
 
+    def each_entry_data(content_files=true, &block)
+      template_entries.each do |entry|
+        next if entry.directory? || content_files && !CONTENT_FILES.include?(entry.name)
+
+        entry.get_input_stream do |stream|
+          block.call(entry, stream.sysread)
+        end
+      end
+    end
+
     private
 
-    def get_template_entries
-
+    def template_entries
       if @template
         Zip::File.open(@template)
       else
         Zip::File.open_buffer(@io.force_encoding("ASCII-8BIT"))
       end
-
     end
 
     def process_entry(entry)
