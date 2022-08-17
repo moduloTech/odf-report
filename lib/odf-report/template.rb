@@ -25,7 +25,7 @@ module ODFReport
 
     def update_files(&block)
       each_entry_data do |entry, data|
-        process_entry(data, &block)
+        process_entry(data, &block) if CONTENT_FILES.include?(entry.name)
         update_file(entry.name, data) unless entry.name == MANIFEST_FILE
       end
     end
@@ -54,17 +54,23 @@ module ODFReport
       @output_stream.write data
     end
 
-    def each_entry_data(content_files=true, &block)
+    def each_content(&block)
+      each_entry_data do |entry, data|
+        block.call(data) if CONTENT_FILES.include?(entry.name)
+      end
+    end
+
+    private
+
+    def each_entry_data(&block)
       template_entries.each do |entry|
-        next if entry.directory? || content_files && !CONTENT_FILES.include?(entry.name)
+        next if entry.directory?
 
         entry.get_input_stream do |stream|
           block.call(entry, stream.sysread)
         end
       end
     end
-
-    private
 
     def template_entries
       if @template

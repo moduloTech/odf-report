@@ -21,7 +21,7 @@ class Report
       begin
         dirty_patterns = []
 
-        @template.each_entry_data do |_entry, data|
+        @template.each_content do |data|
           dirty_patterns.concat(data.scan(ODFReport.config.patterns_regex))
         end
 
