@@ -4,7 +4,7 @@ module ODFReport
 
     attr_accessor :parser
 
-    def replace!(doc, data_item = nil)
+    def replace!(doc)
 
       return unless node = find_text_node(doc)
 

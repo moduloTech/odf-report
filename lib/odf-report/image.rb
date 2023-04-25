@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ODFReport
   class Image < Field
 
@@ -10,11 +12,9 @@ module ODFReport
       super
     end
 
-    def replace!(doc, data_item = nil)
-
+    def replace!(doc)
       frame = doc.xpath("//draw:frame[@draw:name='#{@name}']").first
       image = doc.xpath("//draw:frame[@draw:name='#{@name}']/draw:image").first
-
       return unless image
 
       file = @data_source.value
@@ -27,7 +27,6 @@ module ODFReport
       else
         frame.remove
       end
-      
     end
 
     def self.include_image_file(zip_file, image_file)
@@ -41,7 +40,8 @@ module ODFReport
     def self.include_manifest_entry(content, image_file)
       return unless image_file
 
-      return unless root_node = content.at("//manifest:manifest")
+      root_node = content.at("//manifest:manifest")
+      return unless root_node
 
       href = File.join(IMAGE_DIR_NAME, File.basename(image_file))
 
@@ -50,7 +50,6 @@ module ODFReport
       entry['manifest:media-type'] = MIME::Types.type_for(href)[0].content_type
 
       root_node.add_child entry
-
     end
 
   end

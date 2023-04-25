@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module ODFReport
   class Nestable
 
     def initialize(opts)
       @name = opts[:name]
-
+      @replace_proc = opts.delete(:replace_proc)
       @data_source = DataSource.new(opts)
 
       @fields   = []
@@ -11,7 +13,6 @@ module ODFReport
       @tables   = []
       @sections = []
       @images   = []
-
     end
 
     def set_source(data_item)
@@ -19,36 +20,31 @@ module ODFReport
       self
     end
 
-    def add_field(name, data_field=nil, &block)
-      opts = { name: name, data_field: data_field }
-      @fields << Field.new(opts, &block)
+    def add_field(name, data_field=nil, &)
+      @fields << Field.new({ name:, data_field: }, &)
     end
     alias_method :add_column, :add_field
 
-    def add_text(name, data_field=nil, &block)
-      opts = {name: name, data_field: data_field}
-      @texts << Text.new(opts, &block)
+    def add_text(name, data_field=nil, &)
+      @texts << Text.new({ name:, data_field: }, &)
     end
 
-    def add_image(name, data_field=nil, &block)
-      opts = {name: name, data_field: data_field}
-      @images << Image.new(opts, &block)
+    def add_image(name, data_field=nil, &)
+      @images << Image.new({ name:, data_field: }, &)
     end
 
-    def add_table(table_name, collection_field, opts={})
-      opts.merge!(name: table_name, collection_field: collection_field)
-      tab = Table.new(opts)
-      @tables << tab
+    def add_table(name, collection_field, opts={})
+      table = Table.new(opts.merge(name:, collection_field:))
+      @tables << table
 
-      yield(tab)
+      yield(table) if block_given?
     end
 
-    def add_section(section_name, collection_field, opts={})
-      opts.merge!(name: section_name, collection_field: collection_field)
-      sec = Section.new(opts)
-      @sections << sec
+    def add_section(name, collection_field, opts={})
+      section = Section.new(opts.merge(name:, collection_field:))
+      @sections << section
 
-      yield(sec)
+      yield(section) if block_given?
     end
 
     def all_images

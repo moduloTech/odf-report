@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ODFReport
   class Field
 
@@ -11,22 +13,19 @@ module ODFReport
       self
     end
 
-    def replace!(content, data_item = nil)
-
+    def replace!(content)
       txt = content.inner_html
 
       if txt.gsub!(to_placeholder, sanitize(@data_source.value))
         content.inner_html = txt
       end
-
     end
 
   private
 
     def to_placeholder
-      as_is = ODFReport.config.field_delimiters_as_is
       delimiters = ODFReport.config.field_delimiters
-      if as_is
+      if ODFReport.config.field_delimiters_as_is
         @name.to_s
       elsif delimiters.is_a?(Array)
         "#{delimiters[0]}#{@name.to_s}#{delimiters[1]}"
@@ -36,12 +35,12 @@ module ODFReport
     end
 
     def sanitize(txt)
-      txt = html_escape(txt)
-      txt = odf_linebreak(txt)
-      txt
+      odf_linebreak(
+        html_escape(txt)
+      )
     end
 
-    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }
+    HTML_ESCAPE = { '&' => '&amp;',  '>' => '&gt;',   '<' => '&lt;', '"' => '&quot;' }.freeze
 
     def html_escape(s)
       return "" unless s

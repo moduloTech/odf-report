@@ -13,14 +13,8 @@ module ODFReport
       @value = extract_value_from_item(record)
     end
 
-    def each(&block)
-      return unless @value
-      @value.each(&block)
-    end
-
-    def empty?
-      @value.nil? || @value.empty?
-    end
+    def each(&) = @value&.each(&)
+    def empty? = @value.nil? || @value.empty?
 
     private
 

@@ -1,82 +1,57 @@
+# frozen_string_literal: true
+
 module ODFReport
 
 class Report
 
-  def initialize(template_name = nil, io: nil)
-
-    @template = ODFReport::Template.new(template_name, io: io)
+  def initialize(name = nil, io: nil)
+    @template = ODFReport::Template.new(name, io:)
 
     @texts = []
     @fields = []
     @tables = []
     @sections = []
-    @images      = []
+    @images = []
 
     yield(self) if block_given?
-
   end
 
-  def matching_patterns
-    @matching_patterns ||=
-      begin
-        dirty_patterns = []
-
-        @template.each_content do |data|
-          dirty_patterns.concat(data.scan(ODFReport.config.patterns_regex))
-        end
-
-        dirty_patterns.flatten.compact.uniq
-      end
+  def add_field(name, value='')
+    @fields << Field.new({ name:, value: })
   end
 
-  def add_field(field_tag, value='')
-    opts = {:name => field_tag, :value => value}
-    field = Field.new(opts)
-    @fields << field
+  def add_text(name, value='')
+    @texts << Text.new({ name:, value: })
   end
 
-  def add_text(field_tag, value='')
-    opts = {:name => field_tag, :value => value}
-    text = Text.new(opts)
-    @texts << text
+  def add_table(name, collection, opts={})
+    table = Table.new(opts.merge(name:, collection:))
+    @tables << table
+
+    yield(table) if block_given?
   end
 
-  def add_table(table_name, collection, opts={})
-    opts.merge!(:name => table_name, :collection => collection)
-    tab = Table.new(opts)
-    @tables << tab
+  def add_section(name, collection, opts={})
+    section = Section.new(opts.merge(name:, collection:))
+    @sections << section
 
-    yield(tab)
+    yield(section) if block_given?
   end
 
-  def add_section(section_name, collection, opts={})
-    opts.merge!(:name => section_name, :collection => collection)
-    sec = Section.new(opts)
-    @sections << sec
-
-    yield(sec)
-  end
-
-  def add_image(image_name, value=nil)
-    opts = {:name => image_name, :value => value}
-    image = Image.new(opts)
-    @images << image
+  def add_image(name, value=nil)
+    @images << Image.new({ name:, value: })
   end
 
   def generate(dest = nil)
-
     @template.update_content do |file|
-
       file.update_files do |doc|
+        yield(self, doc) if block_given?
 
         @sections.each { |c| c.replace!(doc) }
         @tables.each   { |c| c.replace!(doc) }
-
         @texts.each    { |c| c.replace!(doc) }
         @fields.each   { |c| c.replace!(doc) }
-
         @images.each   { |c| c.replace!(doc) }
-
       end
 
       all_images.each { |i| Image.include_image_file(file, i) }
@@ -92,7 +67,6 @@ class Report
     else
       @template.data
     end
-
   end
 
   def all_images

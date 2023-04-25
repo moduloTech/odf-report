@@ -5,6 +5,8 @@ module ODFReport
 
       return unless find_section_node(doc)
 
+      @replace_proc.(self, @section_node) if @replace_proc
+
       @data_source.each do |record|
 
         new_section = deep_clone(@section_node)
