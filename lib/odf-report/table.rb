@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ODFReport
   class Table < Nestable
 
@@ -5,21 +7,23 @@ module ODFReport
       super(opts)
 
       @template_rows = []
-      @header           = opts[:header] || false
-      @skip_if_empty    = opts[:skip_if_empty] || false
+      @header = opts.fetch(:header, false)
+      @skip_if_empty = opts.fetch(:skip_if_empty, false)
     end
 
     def replace!(doc)
-      return unless table = find_table_node(doc)
-
-      @template_rows = table.xpath("table:table-row")
-
-      @header = table.xpath("table:table-header-rows").empty? ? @header : false
+      table = find_table_node(doc)
+      return unless table
 
       if @skip_if_empty && @data_source.empty?
         table.remove
         return
       end
+
+      @template_rows = table.xpath("table:table-row")
+      @replace_proc.(self, @template_rows) if @replace_proc
+
+      @header = table.xpath("table:table-header-rows").empty? ? @header : false
 
       @data_source.each do |record|
 
@@ -59,7 +63,7 @@ module ODFReport
         end
       end
 
-      return deep_clone(ret)
+      deep_clone(ret)
     end
 
     def get_start_node
