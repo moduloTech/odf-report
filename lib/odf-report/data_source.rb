@@ -6,7 +6,7 @@ module ODFReport
     def initialize(opts, &block)
       @value      = opts[:value]      || opts[:collection]
       @data_field = opts[:data_field] || opts[:collection_field] || opts[:name]
-      @block      = block
+      @block      = block || opts[:value_proc]
     end
 
     def set_source(record)
